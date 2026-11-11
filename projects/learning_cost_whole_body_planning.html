@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Learning Cost-Driven Whole-Body Planning | Humanoid Robotics</title>
+  <meta name="description" content="Whole-body planning framework that learns motion costs from retargeted human demonstrations to guide constrained humanoid trajectory optimization."/>
+  <link rel="icon" href="../assets/pp_square.jpg"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black: #050505;
+      --white: #f5f5f2;
+      --muted: rgba(245,245,242,0.62);
+      --dim: rgba(245,245,242,0.36);
+      --border: rgba(245,245,242,0.12);
+      --panel: #101111;
+      --accent: #9fb7ff;
+      --accent-soft: rgba(159,183,255,0.16);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-weight: 300;
+      line-height: 1.65;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 72px;
+      padding: 0 56px;
+      background: rgba(5,5,5,0.82);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(18px);
+    }
+
+    .nav-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--white);
+    }
+
+    .nav-back {
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--muted);
+      transition: color 0.2s ease;
+    }
+
+    .nav-back:hover { color: var(--white); }
+
+    .hero {
+      position: relative;
+      min-height: 82svh;
+      display: flex;
+      align-items: flex-end;
+      overflow: hidden;
+      padding: 144px 80px 76px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero-media {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background: var(--panel);
+    }
+
+    .hero-media img,
+    .hero-media video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(0.5) saturate(0.95);
+    }
+
+    .hero-shade {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background:
+        linear-gradient(to bottom, rgba(5,5,5,0.22), rgba(5,5,5,0.08) 42%, rgba(5,5,5,0.95)),
+        linear-gradient(to right, rgba(5,5,5,0.9), rgba(5,5,5,0.24) 62%, rgba(5,5,5,0.62));
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      width: min(100%, 1120px);
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--accent);
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      max-width: 900px;
+      font-size: 68px;
+      font-weight: 500;
+      line-height: 1.04;
+      color: var(--white);
+      margin-bottom: 24px;
+    }
+
+    .hero-summary {
+      max-width: 690px;
+      font-size: 18px;
+      color: rgba(245,245,242,0.72);
+      margin-bottom: 36px;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 20px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--white);
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .button.primary {
+      background: var(--white);
+      color: var(--black);
+      border-color: var(--white);
+    }
+
+    .button:hover {
+      background: rgba(245,245,242,0.1);
+      border-color: rgba(245,245,242,0.34);
+    }
+
+    .button.primary:hover { background: #e0e6ff; }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 88px 80px 0;
+    }
+
+    section {
+      padding: 72px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 72px;
+      align-items: start;
+    }
+
+    h2 {
+      font-size: 38px;
+      font-weight: 500;
+      line-height: 1.14;
+      margin-bottom: 20px;
+    }
+
+    p {
+      color: var(--muted);
+      font-size: 16px;
+      margin-bottom: 18px;
+    }
+
+    .stack-line {
+      color: var(--accent);
+      font-size: 15px;
+      font-weight: 500;
+      margin-top: 20px;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .metric {
+      min-height: 132px;
+      padding: 24px;
+      background: var(--black);
+    }
+
+    .metric-value {
+      font-size: 25px;
+      font-weight: 500;
+      color: var(--white);
+      margin-bottom: 8px;
+    }
+
+    .metric-label {
+      font-size: 14px;
+      color: var(--dim);
+    }
+
+    .media-frame {
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--panel);
+    }
+
+    .media-frame img,
+    .media-frame video {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      background: var(--panel);
+    }
+
+    .media-caption {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 16px;
+      color: var(--muted);
+      font-size: 14px;
+      border-top: 1px solid var(--border);
+    }
+
+    .media-caption span:last-child {
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .work-list {
+      list-style: none;
+      display: grid;
+      gap: 14px;
+    }
+
+    .work-list li {
+      position: relative;
+      padding-left: 24px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .work-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 11px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .system-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .system-item {
+      padding: 24px;
+      background: var(--black);
+      min-height: 146px;
+    }
+
+    .system-item h3 {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 10px;
+      color: var(--white);
+    }
+
+    .system-item p {
+      font-size: 14px;
+      margin-bottom: 0;
+      color: var(--dim);
+    }
+
+    .status {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .status-panel {
+      padding: 28px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: linear-gradient(135deg, var(--accent-soft), rgba(245,245,242,0.02));
+    }
+
+    .status-panel strong {
+      display: block;
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--white);
+      margin-bottom: 8px;
+    }
+
+    .status-panel p { margin-bottom: 0; }
+
+    footer {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 34px 80px 48px;
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      color: var(--dim);
+      font-size: 13px;
+    }
+
+    @media (max-width: 900px) {
+      nav { padding: 0 24px; }
+      .hero { min-height: 78svh; padding: 118px 24px 56px; }
+      h1 { font-size: 46px; }
+      .hero-summary { font-size: 16px; }
+      main { padding: 56px 24px 0; }
+      section { padding: 52px 0; }
+      .two-col,
+      .status {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+      .metrics,
+      .system-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      footer {
+        padding: 28px 24px 40px;
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .nav-title { display: none; }
+      h1 { font-size: 36px; }
+      h2 { font-size: 30px; }
+      .metrics,
+      .system-grid {
+        grid-template-columns: 1fr;
+      }
+      .media-caption {
+        flex-direction: column;
+        gap: 4px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a class="nav-back" href="../index.html#projects">Back to projects</a>
+    <div class="nav-title">Cost-Driven Whole-Body Planning</div>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-media">
+      <video autoplay muted loop playsinline aria-label="Retargeted human demonstration guiding whole-body planning">
+        <source src="../assets/learnng_cost_driven_human_videos.mp4" type="video/mp4"/>
+      </video>
+    </div>
+    <div class="hero-shade"></div>
+    <div class="hero-content">
+      <div class="eyebrow">Motion Planning | Trajectory Optimization | Learning from Demonstrations | Humanoid Robotics</div>
+      <h1>Learning Cost-Driven Whole-Body Planning</h1>
+      <p class="hero-summary">
+        Developing a whole-body planning framework that learns motion costs
+        from retargeted human demonstrations and uses them to guide constrained
+        trajectory optimization.
+      </p>
+      <div class="hero-actions">
+        <a class="button primary" href="#demo">View demonstration</a>
+        <a class="button" href="../index.html#projects">All projects</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <p>
+        This project explores how retargeted human demonstrations can teach a
+        whole-body planner which postures and redundancy choices are more
+        natural, then use that learned cost as guidance inside constrained
+        trajectory optimization.
+      </p>
+    </section>
+
+
+    <section id="demo">
+      <div class="eyebrow">Demonstration</div>
+      <div class="media-frame">
+        <video autoplay muted loop playsinline controls aria-label="Retargeted motion demonstration for humanoid planning">
+          <source src="../assets/learnng_cost_driven_human_videos.mp4" type="video/mp4"/>
+        </video>
+        <div class="media-caption">
+          <span>Retargeted human motion used as planning guidance</span>
+          <span>Whole-body planning</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="two-col">
+        <div>
+          <div class="eyebrow">My Work</div>
+          <h2>Learned guidance for constrained trajectory optimization.</h2>
+        </div>
+        <ul class="work-list">
+          <li>Integrated learned costs with joint limits, collision constraints, task-space objectives, and trajectory smoothness.</li>
+          <li>Designed the planner to remain close to a reference motion while correcting infeasible or unsafe configurations.</li>
+          <li>Investigating how learned global guidance can reduce local minima, posture inconsistency, and abrupt redundancy changes.</li>
+          <li>Evaluating the framework on humanoid reaching and manipulation motions.</li>
+        </ul>
+      </div>
+    </section>
+
+
+  </main>
+
+  <footer>
+    <span>Learning Cost-Driven Whole-Body Planning</span>
+    <span>Research and implementation in progress</span>
+  </footer>
+</body>
+</html>

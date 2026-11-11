@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Two Towers and Beyond | Task and Motion Planning</title>
+  <meta name="description" content="Unified task-and-motion-planning system for robotic block manipulation combining symbolic PDDL planning, physics execution, replanning, and goal verification."/>
+  <link rel="icon" href="../assets/pp_square.jpg"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black: #050505;
+      --white: #f5f5f2;
+      --muted: rgba(245,245,242,0.62);
+      --dim: rgba(245,245,242,0.36);
+      --border: rgba(245,245,242,0.12);
+      --panel: #101111;
+      --accent: #7cc7b8;
+      --accent-soft: rgba(124,199,184,0.15);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-weight: 300;
+      line-height: 1.65;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    video { display: block; max-width: 100%; }
+
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 72px;
+      padding: 0 56px;
+      background: rgba(5,5,5,0.82);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(18px);
+    }
+
+    .nav-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--white);
+    }
+
+    .nav-back {
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--muted);
+      transition: color 0.2s ease;
+    }
+
+    .nav-back:hover { color: var(--white); }
+
+    .hero {
+      position: relative;
+      min-height: 82svh;
+      display: flex;
+      align-items: flex-end;
+      overflow: hidden;
+      padding: 144px 80px 76px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero-media {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background: var(--panel);
+    }
+
+    .hero-media video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(0.5) saturate(0.96);
+    }
+
+    .hero-shade {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background:
+        linear-gradient(to bottom, rgba(5,5,5,0.18), rgba(5,5,5,0.08) 42%, rgba(5,5,5,0.95)),
+        linear-gradient(to right, rgba(5,5,5,0.9), rgba(5,5,5,0.22) 62%, rgba(5,5,5,0.6));
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      width: min(100%, 1120px);
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--accent);
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      max-width: 820px;
+      font-size: 72px;
+      font-weight: 500;
+      line-height: 1.02;
+      color: var(--white);
+      margin-bottom: 24px;
+    }
+
+    .hero-summary {
+      max-width: 720px;
+      font-size: 18px;
+      color: rgba(245,245,242,0.72);
+      margin-bottom: 36px;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 20px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--white);
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .button.primary {
+      background: var(--white);
+      color: var(--black);
+      border-color: var(--white);
+    }
+
+    .button:hover {
+      background: rgba(245,245,242,0.1);
+      border-color: rgba(245,245,242,0.34);
+    }
+
+    .button.primary:hover { background: #d7f1eb; }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 88px 80px 0;
+    }
+
+    section {
+      padding: 72px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 72px;
+      align-items: start;
+    }
+
+    h2 {
+      font-size: 38px;
+      font-weight: 500;
+      line-height: 1.14;
+      margin-bottom: 20px;
+    }
+
+    p {
+      color: var(--muted);
+      font-size: 16px;
+      margin-bottom: 18px;
+    }
+
+    .stack-line {
+      color: var(--accent);
+      font-size: 15px;
+      font-weight: 500;
+      margin-top: 20px;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .metric {
+      min-height: 132px;
+      padding: 24px;
+      background: var(--black);
+    }
+
+    .metric-value {
+      font-size: 25px;
+      font-weight: 500;
+      color: var(--white);
+      margin-bottom: 8px;
+    }
+
+    .metric-label {
+      font-size: 14px;
+      color: var(--dim);
+    }
+
+    .video-frame {
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--panel);
+    }
+
+    .video-frame video {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      background: var(--panel);
+    }
+
+    .video-caption {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 16px;
+      color: var(--muted);
+      font-size: 14px;
+      border-top: 1px solid var(--border);
+    }
+
+    .video-caption span:last-child {
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .work-list {
+      list-style: none;
+      display: grid;
+      gap: 14px;
+    }
+
+    .work-list li {
+      position: relative;
+      padding-left: 24px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .work-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 11px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .system-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .system-item {
+      padding: 24px;
+      background: var(--black);
+      min-height: 146px;
+    }
+
+    .system-item h3 {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 10px;
+      color: var(--white);
+    }
+
+    .system-item p {
+      font-size: 14px;
+      margin-bottom: 0;
+      color: var(--dim);
+    }
+
+    .status {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .status-panel {
+      padding: 28px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: linear-gradient(135deg, var(--accent-soft), rgba(245,245,242,0.02));
+    }
+
+    .status-panel strong {
+      display: block;
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--white);
+      margin-bottom: 8px;
+    }
+
+    .status-panel p { margin-bottom: 0; }
+
+    footer {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 34px 80px 48px;
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      color: var(--dim);
+      font-size: 13px;
+    }
+
+    @media (max-width: 900px) {
+      nav { padding: 0 24px; }
+      .hero { min-height: 78svh; padding: 118px 24px 56px; }
+      h1 { font-size: 48px; }
+      .hero-summary { font-size: 16px; }
+      main { padding: 56px 24px 0; }
+      section { padding: 52px 0; }
+      .two-col,
+      .status {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+      .metrics,
+      .system-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      footer {
+        padding: 28px 24px 40px;
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .nav-title { display: none; }
+      h1 { font-size: 39px; }
+      h2 { font-size: 30px; }
+      .metrics,
+      .system-grid {
+        grid-template-columns: 1fr;
+      }
+      .video-caption {
+        flex-direction: column;
+        gap: 4px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a class="nav-back" href="../index.html#projects">Back to projects</a>
+    <div class="nav-title">Two Towers and Beyond</div>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-media">
+      <video autoplay muted loop playsinline src="../assets/tamp_two_towers.mp4"></video>
+    </div>
+    <div class="hero-shade"></div>
+    <div class="hero-content">
+      <div class="eyebrow">Task and Motion Planning | PDDL | Genesis | Pyperplan | Robotic Manipulation</div>
+      <h1>Two Towers and Beyond</h1>
+      <p class="hero-summary">
+        A unified task-and-motion-planning system for robotic block manipulation,
+        connecting symbolic PDDL planning with physics-based execution, replanning,
+        and goal verification.
+      </p>
+      <div class="hero-actions">
+        <a class="button primary" href="https://github.com/shuayyy/TAMP-Two-towers-and-beyond" target="_blank" rel="noopener">View code</a>
+        <a class="button" href="#video">View video</a>
+        <a class="button" href="../index.html#projects">All projects</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <p>
+        This project builds a complete TAMP pipeline for arranging colored
+        blocks into goal structures. The system abstracts the current scene
+        into symbolic predicates, generates a PDDL problem, solves it with
+        Pyperplan, executes manipulation primitives in Genesis, and replans
+        after physical state changes.
+      </p>
+      <p>
+        The unified demo supports multiple block-building goals, including
+        two-tower structures, single stacked towers, bonus tall towers, and
+        an extended 18-block yellow-cross plus green-square configuration.
+      </p>
+    </section>
+
+
+    <section id="video">
+      <div class="eyebrow">Video</div>
+      <div class="video-frame">
+        <video autoplay muted loop playsinline controls src="../assets/tamp_two_towers.mp4"></video>
+        <div class="video-caption">
+          <span>Goal 1 scene 2 verification video, trimmed from the generated run video</span>
+          <span>2x playback</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="two-col">
+        <div>
+          <div class="eyebrow">My Work</div>
+          <h2>Planning, execution, verification, and physics debugging.</h2>
+        </div>
+        <ul class="work-list">
+          <li>Built a unified demo path so every goal configuration runs through the same shared codebase.</li>
+          <li>Selected A* for optimal plans on small goals and enforced hill climbing for the larger goal variants.</li>
+          <li>Implemented closed-loop execution that replans after every action until the goal is verified.</li>
+          <li>Added headless recording and verification paths so simulation runs produce videos, logs, and measurable success checks.</li>
+          <li>Debugged manipulation failures in gravity compensation, grasp attachment, finger control, descent, IK convergence, and putdown target selection.</li>
+        </ul>
+      </div>
+    </section>
+
+
+  </main>
+
+  <footer>
+    <span>Two Towers and Beyond</span>
+    <span>Task and motion planning for block manipulation</span>
+  </footer>
+</body>
+</html>

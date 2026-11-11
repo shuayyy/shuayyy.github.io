@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Humanoid-Tugger | Unitree G1 Loco-Manipulation</title>
+  <meta name="description" content="Whole-body reinforcement-learning system for a Unitree G1 humanoid grasping and transporting wheeled objects, built in Isaac Lab with PPO."/>
+  <link rel="icon" href="../assets/pp_square.jpg"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black: #050505;
+      --white: #f5f5f2;
+      --muted: rgba(245,245,242,0.62);
+      --dim: rgba(245,245,242,0.36);
+      --border: rgba(245,245,242,0.12);
+      --panel: #101111;
+      --accent: #e0b35b;
+      --accent-soft: rgba(224,179,91,0.16);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-weight: 300;
+      line-height: 1.65;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    video { display: block; max-width: 100%; }
+
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 72px;
+      padding: 0 56px;
+      background: rgba(5,5,5,0.82);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(18px);
+    }
+
+    .nav-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--white);
+    }
+
+    .nav-back {
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--muted);
+      transition: color 0.2s ease;
+    }
+
+    .nav-back:hover { color: var(--white); }
+
+    .hero {
+      position: relative;
+      min-height: 82svh;
+      display: flex;
+      align-items: flex-end;
+      overflow: hidden;
+      padding: 144px 80px 76px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero-media {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background: var(--panel);
+    }
+
+    .hero-media video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(0.52) saturate(0.94);
+    }
+
+    .hero-shade {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background:
+        linear-gradient(to bottom, rgba(5,5,5,0.2), rgba(5,5,5,0.08) 42%, rgba(5,5,5,0.95)),
+        linear-gradient(to right, rgba(5,5,5,0.88), rgba(5,5,5,0.2) 62%, rgba(5,5,5,0.62));
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      width: min(100%, 1120px);
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--accent);
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      max-width: 780px;
+      font-size: 72px;
+      font-weight: 500;
+      line-height: 1.02;
+      color: var(--white);
+      margin-bottom: 24px;
+    }
+
+    .hero-summary {
+      max-width: 680px;
+      font-size: 18px;
+      color: rgba(245,245,242,0.72);
+      margin-bottom: 36px;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 20px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--white);
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .button.primary {
+      background: var(--white);
+      color: var(--black);
+      border-color: var(--white);
+    }
+
+    .button:hover {
+      background: rgba(245,245,242,0.1);
+      border-color: rgba(245,245,242,0.34);
+    }
+
+    .button.primary:hover { background: #efe2c7; }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 88px 80px 0;
+    }
+
+    section {
+      padding: 72px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 72px;
+      align-items: start;
+    }
+
+    h2 {
+      font-size: 38px;
+      font-weight: 500;
+      line-height: 1.14;
+      margin-bottom: 20px;
+    }
+
+    p {
+      color: var(--muted);
+      font-size: 16px;
+      margin-bottom: 18px;
+    }
+
+    .stack-line {
+      color: var(--accent);
+      font-size: 15px;
+      font-weight: 500;
+      margin-top: 20px;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .metric {
+      min-height: 132px;
+      padding: 24px;
+      background: var(--black);
+    }
+
+    .metric-value {
+      font-size: 25px;
+      font-weight: 500;
+      color: var(--white);
+      margin-bottom: 8px;
+    }
+
+    .metric-label {
+      font-size: 14px;
+      color: var(--dim);
+    }
+
+    .video-frame {
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--panel);
+    }
+
+    .video-frame video {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      background: var(--panel);
+    }
+
+    .video-caption {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 16px;
+      color: var(--muted);
+      font-size: 14px;
+      border-top: 1px solid var(--border);
+    }
+
+    .video-caption span:last-child {
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .work-list {
+      list-style: none;
+      display: grid;
+      gap: 14px;
+    }
+
+    .work-list li {
+      position: relative;
+      padding-left: 24px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .work-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 11px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .system-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .system-item {
+      padding: 24px;
+      background: var(--black);
+      min-height: 146px;
+    }
+
+    .system-item h3 {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 10px;
+      color: var(--white);
+    }
+
+    .system-item p {
+      font-size: 14px;
+      margin-bottom: 0;
+      color: var(--dim);
+    }
+
+    .status {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .status-panel {
+      padding: 28px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: linear-gradient(135deg, var(--accent-soft), rgba(245,245,242,0.02));
+    }
+
+    .status-panel strong {
+      display: block;
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--white);
+      margin-bottom: 8px;
+    }
+
+    .status-panel p { margin-bottom: 0; }
+
+    footer {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 34px 80px 48px;
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      color: var(--dim);
+      font-size: 13px;
+    }
+
+    @media (max-width: 900px) {
+      nav { padding: 0 24px; }
+      .hero { min-height: 78svh; padding: 118px 24px 56px; }
+      h1 { font-size: 48px; }
+      .hero-summary { font-size: 16px; }
+      main { padding: 56px 24px 0; }
+      section { padding: 52px 0; }
+      .two-col,
+      .status {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+      .metrics,
+      .system-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      footer {
+        padding: 28px 24px 40px;
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .nav-title { display: none; }
+      h1 { font-size: 39px; }
+      h2 { font-size: 30px; }
+      .metrics,
+      .system-grid {
+        grid-template-columns: 1fr;
+      }
+      .video-caption {
+        flex-direction: column;
+        gap: 4px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a class="nav-back" href="../index.html#projects">Back to projects</a>
+    <div class="nav-title">Humanoid-Tugger</div>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-media">
+      <video autoplay muted loop playsinline src="../assets/side.mp4"></video>
+    </div>
+    <div class="hero-shade"></div>
+    <div class="hero-content">
+      <div class="eyebrow">Unitree G1 | Isaac Lab | PyTorch | PPO | Whole-Body Loco-Manipulation</div>
+      <h1>Humanoid-Tugger</h1>
+      <p class="hero-summary">
+        Developing a whole-body reinforcement-learning system that enables a
+        humanoid robot to grasp and transport wheeled objects while maintaining
+        stable locomotion and hand contact.
+      </p>
+      <div class="hero-actions">
+        <a class="button primary" href="#video">View video</a>
+        <a class="button" href="../index.html#projects">All projects</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <p>
+        Humanoid-Tugger trains a single Unitree G1 policy for the full task —
+        walking, grasping, and cart transport as one whole-body behavior
+        rather than separate control problems. The system is still in
+        simulation development.
+      </p>
+    </section>
+
+
+    <section id="video">
+      <div class="eyebrow">Video</div>
+      <div class="video-frame">
+        <video autoplay muted loop playsinline controls src="../assets/side.mp4"></video>
+        <div class="video-caption">
+          <span>Cart transport policy video</span>
+          <span>Isaac Lab</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="two-col">
+        <div>
+          <div class="eyebrow">My Work</div>
+          <h2>Training environment, contacts, and reward redesign.</h2>
+        </div>
+        <ul class="work-list">
+          <li>Built the PPO training environment in Isaac Lab covering walking, torso stabilization, dual-arm reaching, grasping, and cart transport.</li>
+          <li>Designed observations and rewards for gait tracking, palm and finger contact, handle alignment, cart position and orientation tracking, and whole-body stability.</li>
+          <li>Integrated Dex3 hands, contact-force sensing, inverse-kinematics-based pre-grasp initialization, and randomized cart dynamics.</li>
+          <li>Debugged failure modes including hopping, toe-standing, torso rotation, unstable contact, and reward exploitation through video analysis and reward redesign.</li>
+          <li>Evaluating the policy on straight-line cart transport before integrating learned cart dynamics and kinodynamic planning.</li>
+        </ul>
+      </div>
+    </section>
+
+
+  </main>
+
+  <footer>
+    <span>Humanoid-Tugger</span>
+    <span>Simulation training in progress</span>
+  </footer>
+</body>
+</html>

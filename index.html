@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mohamed Shuaib Nasurudeen — Robotics</title>
+  <meta name="description" content="Mohamed Shuaib Nasurudeen — M.S. Robotics Engineering student at WPI. Robot learning, humanoid robotics, robot control, and motion planning."/>
+  <link rel="canonical" href="https://shuayyy.github.io/"/>
+  <meta property="og:title" content="Mohamed Shuaib Nasurudeen — Robotics"/>
+  <meta property="og:description" content="Robot learning, humanoid robotics, robot control, and motion planning."/>
+  <meta property="og:url" content="https://shuayyy.github.io/"/>
+  <meta property="og:image" content="https://shuayyy.github.io/assets/pp_square.jpg"/>
+  <link rel="icon" href="assets/pp_square.jpg"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- ==================== TOP CATALOG ==================== -->
+<nav>
+  <div class="nav-inner">
+    <a href="#home" class="nav-left">
+      <img src="assets/pp_square.jpg" alt="Mohamed Shuaib Nasurudeen" class="nav-avatar"/>
+      <span class="nav-name">Mohamed Shuaib Nasurudeen</span>
+    </a>
+
+    <div class="nav-center">
+      <a href="#projects" class="nav-link">Projects</a>
+      <a href="#contact" class="nav-link">Contact</a>
+    </div>
+
+    <div class="nav-right">
+      <button type="button" class="nav-hamburger" onclick="toggleMenu()" aria-label="Menu" aria-expanded="false" aria-controls="mobileMenu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#projects">Projects</a>
+  <a href="#contact">Contact</a>
+  <a href="assets/shuaib_resume.pdf?v=20261111b" target="_blank">CV</a>
+  <a href="https://github.com/shuayyy" target="_blank" rel="noopener">GitHub</a>
+  <a href="https://www.linkedin.com/in/mohamed-shuaib-nasurudeen/" target="_blank" rel="noopener">LinkedIn</a>
+</div>
+
+<main class="site-main">
+
+<!-- ==================== HOME ==================== -->
+<section id="home">
+  <div class="col">
+    <div class="intro-layout reveal">
+      <div class="intro-side">
+        <img src="assets/pp_square.jpg" alt="Mohamed Shuaib Nasurudeen" class="intro-photo"/>
+        <div class="intro-affil">
+          Worcester Polytechnic Institute<br/>
+          Robotics Engineering<br/>
+          Worcester, MA, USA
+        </div>
+      </div>
+      <div class="intro-text">
+        <h1 class="intro-name">Mohamed Shuaib Nasurudeen</h1>
+        <div class="intro-body">
+          <p>
+            I am an M.S. student in Robotics Engineering at
+            <a href="https://www.wpi.edu/" target="_blank" rel="noopener">WPI</a>,
+            advised by Prof.
+            <a href="https://cchamzas.com/" target="_blank" rel="noopener">Constantinos Chamzas</a>.
+          </p>
+          <p>
+            My research focuses on <strong>humanoid loco-manipulation</strong> —
+            enabling humanoid robots to interact with and maneuver wheeled
+            objects. I develop approaches that integrate <strong>reinforcement
+            learning, learned dynamics models, and motion planning</strong> for
+            reliable whole-body control. More broadly, I work at the
+            intersection of classical robotics and learning-based methods,
+            with interests spanning model-based control, world models, and
+            sim-to-real transfer.
+          </p>
+          <p>
+            I am currently seeking opportunities in <strong>humanoid robotics and
+            robot learning</strong>.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="intro-icons reveal">
+      <a href="assets/shuaib_resume.pdf?v=20261111b" target="_blank" aria-label="CV" class="intro-icon intro-icon-cv">CV</a>
+      <a href="mailto:nshuaibmohamed@gmail.com" aria-label="Email" class="intro-icon">
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M2 5.5A1.5 1.5 0 0 1 3.5 4h17A1.5 1.5 0 0 1 22 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-17A1.5 1.5 0 0 1 2 18.5v-13Zm2.2.5 7.8 6.2L19.8 6H4.2ZM20 7.8l-7.4 5.9a1 1 0 0 1-1.2 0L4 7.8V18h16V7.8Z"/></svg>
+      </a>
+      <a href="https://github.com/shuayyy" target="_blank" rel="noopener" aria-label="GitHub" class="intro-icon">
+        <img src="assets/github-mark-white.svg" alt="GitHub"/>
+      </a>
+      <a href="https://www.linkedin.com/in/mohamed-shuaib-nasurudeen/" target="_blank" rel="noopener" aria-label="LinkedIn" class="intro-icon">
+        <img src="assets/linkedin-svgrepo-com.svg" alt="LinkedIn" class="invert"/>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== PROJECTS ==================== -->
+<section id="projects">
+  <div class="col">
+    <div class="eyebrow reveal">Selected Projects</div>
+    <div class="projects-list">
+
+      <!-- Humanoid AMP-PPO -->
+      <a href="projects/humanoid_amp_ppo.html" class="project-row reveal">
+        <div class="project-media">
+          <video muted loop playsinline preload="metadata" data-autoplay>
+            <source src="assets/humanoid_amp_ppo_dual_arm.mp4" type="video/mp4"/>
+          </video>
+        </div>
+        <div class="project-body">
+          <div class="project-title">Humanoid AMP-PPO</div>
+          <div class="project-tag">Unitree G1 · MuJoCo · AMP-PPO</div>
+          <p class="project-desc">
+            Whole-body reinforcement-learning framework for coordinated humanoid
+            locomotion and dual-arm behaviors.
+          </p>
+          <span class="project-link">View project →</span>
+        </div>
+      </a>
+
+      <!-- Humanoid-Tugger -->
+      <a href="projects/humanoid_tugger.html" class="project-row reveal">
+        <div class="project-media">
+          <video muted loop playsinline preload="metadata" data-autoplay src="assets/side.mp4"></video>
+        </div>
+        <div class="project-body">
+          <div class="project-title">Humanoid-Tugger</div>
+          <div class="project-tag">Unitree G1 · Isaac Lab · PPO</div>
+          <p class="project-desc">
+            Whole-body reinforcement-learning system for grasping and transporting
+            wheeled objects while walking.
+          </p>
+          <span class="project-link">View project →</span>
+        </div>
+      </a>
+
+      <!-- Learning Cost-Driven Whole-Body Planning -->
+      <a href="projects/learning_cost_whole_body_planning.html" class="project-row reveal">
+        <div class="project-media">
+          <video muted loop playsinline preload="metadata" data-autoplay>
+            <source src="assets/learnng_cost_driven_human_videos.mp4" type="video/mp4"/>
+          </video>
+        </div>
+        <div class="project-body">
+          <div class="project-title">Learning Cost-Driven Whole-Body Planning</div>
+          <div class="project-tag">Motion Planning · Trajectory Optimization</div>
+          <p class="project-desc">
+            Whole-body planner that learns motion costs from retargeted human
+            demonstrations to guide trajectory optimization.
+          </p>
+          <span class="project-link">View project →</span>
+        </div>
+      </a>
+
+      <!-- Two Towers and Beyond -->
+      <a href="projects/two_towers_and_beyond.html" class="project-row reveal">
+        <div class="project-media">
+          <video muted loop playsinline preload="metadata" data-autoplay>
+            <source src="assets/tamp_two_towers.mp4" type="video/mp4"/>
+          </video>
+        </div>
+        <div class="project-body">
+          <div class="project-title">Two Towers and Beyond</div>
+          <div class="project-tag">TAMP · PDDL · Genesis</div>
+          <p class="project-desc">
+            Unified task-and-motion-planning system for robotic block manipulation
+            with symbolic planning and replanning.
+          </p>
+          <span class="project-link">View project →</span>
+        </div>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<!-- ==================== CONTACT ==================== -->
+<section id="contact">
+  <div class="col">
+    <div class="eyebrow reveal">Contact</div>
+    <div class="reveal">
+      <p class="contact-body">
+        Open to research roles, engineering roles, and collaborations on humanoid
+        robot learning, reinforcement learning, planning, simulation, or control.
+        <span class="contact-note">(easiest way to reach out is by LinkedIn mail)</span>
+      </p>
+      <p class="contact-line">
+        <a href="mailto:nshuaibmohamed@gmail.com">nshuaibmohamed@gmail.com</a>
+      </p>
+      <p class="contact-line">
+        <a href="https://www.linkedin.com/in/mohamed-shuaib-nasurudeen/" target="_blank" rel="noopener">LinkedIn</a>
+      </p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ==================== FOOTER ==================== -->
+<footer>
+  <div class="footer-inner">
+    <span class="footer-copy">© 2026 Mohamed Shuaib Nasurudeen</span>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+
+</body>
+</html>
